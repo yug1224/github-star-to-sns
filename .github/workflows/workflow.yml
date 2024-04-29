@@ -12,17 +12,17 @@ jobs:
     steps:
       # リポジトリのチェックアウト
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # Cacheの復元
       - name: Cache Deno Deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.deno
             ~/.cache/deno
           key: ${{ hashFiles('deno.lock') }}
       - name: Restore Last Execution Time Cache
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
             .timestamp
@@ -57,7 +57,7 @@ jobs:
           WEBHOOK_URL: ${{secrets.WEBHOOK_URL}}
       # Cacheの保存
       - name: Save Last Execution Time Cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: ${{always() && (steps.check_file.outputs.files_exists == 'false' || steps.set-timestamp-hash.outputs.TIMESTAMP != hashFiles('.timestamp'))}}
         with:
           path: |
