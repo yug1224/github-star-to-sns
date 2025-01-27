@@ -11,14 +11,14 @@ export default async (url: string) => {
       if (retryCount >= 3) return;
 
       // リトライ処理
-      console.log(`fetch retry ${retryCount + 1} times`);
+      console.log(`Retry fetchImage`);
       return await fetchRetry(url, retryCount + 1);
     }
     return response;
   };
   const response = await fetchRetry(url);
   if (!response) {
-    console.log('failed to get image');
+    console.log('Failed fetchImage');
     return {};
   }
   const buffer = await response.arrayBuffer();
@@ -48,21 +48,21 @@ export default async (url: string) => {
       console.log('resizedImage.byteLength', resizedImage.byteLength);
       if (resizedImage && resizedImage.byteLength > maxByteLength) {
         // リトライ処理
-        console.log(`resize retry ${retryCount + 1} times`);
+        console.log(`Retry resizeImage`);
         return await resizeRetry({ buffer, retryCount: retryCount + 1 });
       }
       return { mimeType, resizedImage };
     };
     const { mimeType, resizedImage } = await resizeRetry({ buffer });
 
-    console.log('success to resize image');
+    console.log('Success resizeImage');
     return {
       mimeType,
       resizedImage,
     };
   } catch {
     // 画像のリサイズに失敗した場合は空オブジェクトを返す
-    console.log('failed to resize image');
+    console.log('Failed resizeImage');
     return {};
   }
 };

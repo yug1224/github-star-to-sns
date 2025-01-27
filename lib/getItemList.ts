@@ -1,4 +1,4 @@
-import { parseFeed } from 'https://deno.land/x/rss@0.6.0/mod.ts';
+import { parseFeed } from 'jsr:@mikaelporttila/rss';
 
 const lastExecutionTime = await Deno.readTextFile('.timestamp');
 console.log(lastExecutionTime.trim());

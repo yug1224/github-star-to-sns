@@ -1,7 +1,9 @@
-import 'https://deno.land/std@0.193.0/dotenv/load.ts';
-import { delay } from 'https://deno.land/std@0.201.0/async/mod.ts';
+import 'jsr:@std/dotenv/load';
+import { delay } from 'jsr:@std/async';
 import AtprotoAPI from 'npm:@atproto/api';
 import createBlueskyProps from './lib/createBlueskyProps.ts';
+import createPDF from './lib/createPDF.ts';
+import createSummary from './lib/createSummary.ts';
 import createXProps from './lib/createXProps.ts';
 import getItemList from './lib/getItemList.ts';
 import getOgp from './lib/getOgp.ts';
@@ -39,9 +41,32 @@ try {
     // URLからOGPの取得
     const og = await getOgp(link);
 
+    const path = `${timestamp}.pdf`;
+
+    // WebページをPDF化
+    await createPDF(link, path);
+
+    // Gemini APIで要約
+    const fileInfo = await Deno.stat(path).catch(() => undefined);
+    let summary = '';
+    if (fileInfo?.isFile) {
+      summary = await createSummary(path);
+    }
+
     // 投稿記事のプロパティを作成
-    const { bskyText } = await createBlueskyProps({ agent, item });
-    const { xText } = await createXProps({ item });
+    const { bskyText } = await createBlueskyProps({
+      agent,
+      item: {
+        ...item,
+        summary,
+      },
+    });
+    const { xText } = await createXProps({
+      item: {
+        ...item,
+        summary,
+      },
+    });
 
     // 画像のリサイズ
     const { mimeType, resizedImage } = await (async () => {
