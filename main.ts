@@ -11,9 +11,10 @@ import postBluesky from './lib/postBluesky.ts';
 import postWebhook from './lib/postWebhook.ts';
 import resizeImage from './lib/resizeImage.ts';
 
+let cnt = 0, currentItem, itemList;
 try {
   // rss feedから記事リストを取得
-  const itemList = await getItemList();
+  itemList = await getItemList();
   console.log(JSON.stringify(itemList, null, 2));
 
   // 対象がなかったら終了
@@ -32,6 +33,15 @@ try {
 
   // 取得した記事リストをループ処理
   for await (const item of itemList) {
+    // 投稿回数をカウントし、3件以上投稿したら終了
+    cnt++;
+    if (cnt > 3) {
+      console.log('post count over');
+      break;
+    }
+
+    currentItem = item;
+
     // 最終実行時間を更新
     const timestamp = item.published ? new Date(item.published).toISOString() : new Date().toISOString();
     await Deno.writeTextFile('.timestamp', timestamp);
@@ -47,11 +57,7 @@ try {
     await createPDF(link, path);
 
     // Gemini APIで要約
-    const fileInfo = await Deno.stat(path).catch(() => undefined);
-    let summary = '';
-    if (fileInfo?.isFile) {
-      summary = await createSummary(path);
-    }
+    const summary = await createSummary(path);
 
     // 投稿記事のプロパティを作成
     const { bskyText } = await createBlueskyProps({
@@ -100,8 +106,19 @@ try {
   // 終了
   Deno.exit(0);
 } catch (e) {
+  // エラーが発生した記事をリストの最後に追加して保存する
+  if (currentItem && itemList) {
+    await Deno.writeTextFile(
+      '.itemList.json',
+      JSON.stringify([...itemList.slice(cnt), {
+        ...currentItem,
+        published: itemList.at(-1)?.published || currentItem.published,
+      }]),
+    );
+  }
+
   // エラーが発生したらログを出力して終了
   console.error(e.stack);
-  console.error(JSON.stringify(e, null, 2));
+
   Deno.exit(1);
 }

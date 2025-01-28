@@ -13,6 +13,10 @@ jobs:
       # リポジトリのチェックアウト
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: latest
       # Cacheの復元
       - name: Cache Deno Deps
         uses: actions/cache@v4

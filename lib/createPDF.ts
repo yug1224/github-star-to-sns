@@ -1,5 +1,5 @@
 import { abortable } from 'jsr:@std/async';
-import { launch } from 'jsr:@astral/astral';
+import puppeteer from 'npm:puppeteer-core';
 export default async (url: string, path: string) => {
   const retry = async (retryCount = 0) => {
     try {
@@ -8,17 +8,17 @@ export default async (url: string, path: string) => {
       const timer = setTimeout(() => {
         console.log('Timeout createPDF');
         return c.abort();
-      }, 1000 * 10 * (retryCount + 1));
+      }, 1000 * 60 * 5);
 
       await abortable(
         (async () => {
-          const browser = await launch();
+          const browser = await puppeteer.launch({ channel: 'chrome' });
           const page = await browser.newPage();
+          page.setDefaultNavigationTimeout(1000 * 60 * 3);
+          page.setDefaultTimeout(1000 * 60 * 3);
           await page.goto(url, { waitUntil: 'load' });
-          const pdf = await page.pdf({
-            paperWidth: 33.1,
-            paperHeight: 46.8,
-          });
+          // Webページの場合は、PDF化する
+          const pdf = await page.pdf({ format: 'A0' });
           Deno.writeFileSync(path, pdf);
           await browser.close();
         })(),
