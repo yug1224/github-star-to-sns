@@ -118,7 +118,9 @@ try {
   }
 
   // エラーが発生したらログを出力して終了
-  console.error(e.stack);
+  if (e instanceof Error) {
+    console.error(e.stack);
+  }
 
   Deno.exit(1);
 }

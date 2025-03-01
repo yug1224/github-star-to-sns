@@ -45,7 +45,7 @@ export default async (path: string): Promise<string> => {
   const retry = async (retryCount = 0) => {
     try {
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash-lite',
         systemInstruction,
       });
 
