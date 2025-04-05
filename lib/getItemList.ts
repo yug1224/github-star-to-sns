@@ -18,7 +18,7 @@ export default async () => {
   const foundList = feed.entries.reverse().filter((item) => {
     return (
       item.published &&
-      new Date(lastExecutionTime.trim()) < new Date(item.published) &&
+      new Date(Number(lastExecutionTime.trim())) < new Date(item.published) &&
       new RegExp('starred', 'g').test(item.title?.value || '')
     );
   });

@@ -8,7 +8,7 @@ export default async ({ item }: { item: FeedEntry & { summary: string } }) => {
 
   // X用のテキストを作成
   const xText = (() => {
-    return summary ? `${link}\n${title}\n\n${summary}` : `${link}\n${title}`;
+    return summary ? `${title}\n\n${summary}\n\n${link}` : `${title}\n${link}`;
   })();
 
   console.log('Success createXProps');

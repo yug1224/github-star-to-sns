@@ -43,8 +43,8 @@ try {
     currentItem = item;
 
     // 最終実行時間を更新
-    const timestamp = item.published ? new Date(item.published).toISOString() : new Date().toISOString();
-    await Deno.writeTextFile('.timestamp', timestamp);
+    const timestamp = item.published ? new Date(item.published).getTime() : new Date().getTime();
+    await Deno.writeTextFile('.timestamp', timestamp.toString());
 
     const link = item.links[0].href || '';
 
@@ -81,7 +81,7 @@ try {
         console.log('ogp image not found');
         return {};
       }
-      return await resizeImage(new URL(ogImage.url, link).href);
+      return await resizeImage(new URL(ogImage.url, link).href, timestamp);
     })();
 
     // Blueskyに投稿
@@ -97,10 +97,6 @@ try {
 
     // IFTTTを使ってXに投稿
     await postWebhook(xText);
-
-    // 30秒待つ
-    console.log('wait 30 seconds');
-    await delay(1000 * 30);
   }
 
   // 終了

@@ -41,7 +41,7 @@ jobs:
       - name: Set Current Time
         if: steps.check_file.outputs.files_exists == 'false'
         run: |
-          echo "$(date '+%Y-%m-%dT%H:%M:%SZ')" > .timestamp
+          echo "$(deno eval 'console.log(new Date().getTime())')" > .timestamp
       - name: Set Timestamp Hash
         id: set-timestamp-hash
         run: |

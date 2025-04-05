@@ -1,29 +1,33 @@
-import sharp from 'npm:sharp';
+import {
+  ImageMagick,
+  IMagickImage,
+  initialize,
+  MagickFormat,
+} from 'https://deno.land/x/imagemagick_deno@0.0.31/mod.ts';
 
-export default async (url: string) => {
-  const fetchRetry = async (url: string, retryCount = 0): Promise<Response | undefined> => {
-    const response = await fetch(url);
-    const contentType = response.headers.get('content-type') || '';
-
-    // 画像が取得できなかった場合
-    if (!response.ok || !contentType?.includes('image')) {
-      // 3回リトライしてもダメならundefinedを返す
-      if (retryCount >= 3) return;
-
-      // リトライ処理
-      console.log(`Retry fetchImage`);
-      return await fetchRetry(url, retryCount + 1);
-    }
-    return response;
-  };
-  const response = await fetchRetry(url);
-  if (!response) {
-    console.log('Failed fetchImage');
-    return {};
-  }
-  const buffer = await response.arrayBuffer();
-
+export default async (url: string, timestamp: number) => {
   try {
+    const fetchRetry = async (url: string, retryCount = 0): Promise<Response | undefined> => {
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || '';
+
+      // 画像が取得できなかった場合
+      if (!response.ok || !contentType?.includes('image')) {
+        if (retryCount >= 5) return;
+
+        // リトライ処理
+        console.log(`Retry getImage`);
+        return await fetchRetry(url, retryCount + 1);
+      }
+      return response;
+    };
+    const response = await fetchRetry(url);
+    if (!response) {
+      console.log('Failed getImage');
+      return {};
+    }
+    const buffer = await response.arrayBuffer();
+
     const resizeRetry = async ({
       buffer,
       retryCount = 0,
@@ -31,24 +35,29 @@ export default async (url: string) => {
       buffer: ArrayBuffer;
       retryCount?: number;
     }): Promise<{ mimeType?: string; resizedImage?: Uint8Array }> => {
-      const image = await sharp(buffer);
-      const { width, height } = await image.metadata();
+      await initialize();
 
       const mimeType = 'image/avif';
       const maxWidth = 2000;
       const maxHeight = 2000;
       const maxByteLength = 976.56 * 1000;
-      const resizeWidth = width && height && width >= height ? maxWidth : undefined;
-      const resizeHeight = width && height && width < height ? maxHeight : undefined;
 
-      const resizedImage = await image.resize({ width: resizeWidth, height: resizeHeight }).avif({
-        quality: 100 - (retryCount * 2),
-      }).toBuffer();
+      const resizedImage = await ImageMagick.read(new Uint8Array(buffer), async (img: IMagickImage) => {
+        img.resize(maxWidth, maxHeight);
+        img.quality = 100 - (retryCount * 2);
+
+        await img.write(MagickFormat.Avif, async (data: Uint8Array) => {
+          await Deno.writeFile(`${timestamp}.avif`, data);
+          return;
+        });
+        const resized = await Deno.readFile(`${timestamp}.avif`);
+        return resized;
+      });
 
       console.log('resizedImage.byteLength', resizedImage.byteLength);
       if (resizedImage && resizedImage.byteLength > maxByteLength) {
         // リトライ処理
-        console.log(`Retry resizeImage`);
+        console.log('Retry resizedImage');
         return await resizeRetry({ buffer, retryCount: retryCount + 1 });
       }
       return { mimeType, resizedImage };
@@ -60,7 +69,9 @@ export default async (url: string) => {
       mimeType,
       resizedImage,
     };
-  } catch {
+  } catch (e) {
+    console.error(e);
+
     // 画像のリサイズに失敗した場合は空オブジェクトを返す
     console.log('Failed resizeImage');
     return {};
