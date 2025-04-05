@@ -12,21 +12,21 @@ jobs:
     steps:
       # リポジトリのチェックアウト
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # v1.7.3
         with:
           chrome-version: latest
       # Cacheの復元
       - name: Cache Deno Deps
-        uses: actions/cache@v4
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
             ~/.deno
             ~/.cache/deno
           key: ${{ hashFiles('deno.lock') }}
       - name: Restore Last Execution Time Cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
             .timestamp
@@ -34,7 +34,7 @@ jobs:
           restore-keys: last-execution-time-
       - name: Check file exists
         id: check_file
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@20b4d2e596410855db8f9ca21e96fbe18e12930b # v2.0.0
         with:
           files: .timestamp
       # 現在時刻を設定
@@ -48,7 +48,7 @@ jobs:
           echo "TIMESTAMP=${{hashFiles('.timestamp')}}" >> $GITHUB_OUTPUT
       # Denoのセットアップ
       - name: Setup Deno
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@909cc5acb0fdd60627fb858598759246509fa755 # v2.0.2
         with:
           deno-version: v2.x
       # Denoの実行
@@ -63,7 +63,7 @@ jobs:
           GEMINI_MODEL: ${{secrets.GEMINI_MODEL}}
       # Cacheの保存
       - name: Save Last Execution Time Cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         if: ${{always() && (steps.check_file.outputs.files_exists == 'false' || steps.set-timestamp-hash.outputs.TIMESTAMP != hashFiles('.timestamp'))}}
         with:
           path: |
