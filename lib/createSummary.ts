@@ -18,7 +18,7 @@ const systemInstruction = `
 
 # Example Output
 （例：新しいJavaScriptフレームワークのドキュメントが与えられた場合）
-「仮想DOMの差分更新で、UI描画が速くなるらしい。リスト表示が多い画面で特に効果がありそう。」
+「仮想DOMの差分更新で、UI描画が速くなるらしい。リスト表示が多い画面で特に効果があるかも。」
 `;
 
 const apiKey = Deno.env.get('GOOGLE_AI_API_KEY') || '';
