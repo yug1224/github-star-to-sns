@@ -1,8 +1,4 @@
 import { type FeedEntry } from 'jsr:@mikaelporttila/rss';
-import defaultsGraphemer from 'npm:graphemer';
-
-const Graphemer = defaultsGraphemer.default;
-const splitter = new Graphemer();
 
 import AtprotoAPI, { AtpAgent } from 'npm:@atproto/api';
 const { RichText } = AtprotoAPI;
@@ -17,31 +13,14 @@ export default async ({ agent, item }: {
 
   // Bluesky用のテキストを作成
   const bskyText = await (async () => {
-    const { host, pathname } = new URL(link);
-    const key = splitter.splitGraphemes(`${host}${pathname}`).slice(0, 19).join('') + '...';
-    let text = `${key}\n${title}`;
+    let text = `${title}\n${link}`;
 
     if (summary) {
-      text = `${text}\n\n${summary}`;
+      text = `${summary}\n\n${text}`;
     }
 
     const rt = new RichText({ text });
     await rt.detectFacets(agent);
-    rt.facets = [
-      {
-        index: {
-          byteStart: 0,
-          byteEnd: splitter.countGraphemes(key),
-        },
-        features: [
-          {
-            $type: 'app.bsky.richtext.facet#link',
-            uri: link,
-          },
-        ],
-      },
-      ...(rt.facets || []),
-    ];
     return rt;
   })();
 
